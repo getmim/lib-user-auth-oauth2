@@ -1,0 +1,18 @@
+<?php
+/**
+ * UserAuthOauth2Code
+ * @package lib-user-auth-oauth2
+ * @version 0.0.1
+ */
+
+namespace LibUserAuthOauth2\Model;
+
+class UserAuthOauth2Code extends \Mim\Model
+{
+
+    protected static $table = 'user_auth_oauth2_code';
+
+    protected static $chains = [];
+
+    protected static $q = [];
+}

@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <?= $this->partial('user/auth/oauth2/header'); ?>
+    <title>OAuth Error!</title>
+    <style>html,body{height:100%;}</style>
+</head>
+<body>
+    <div class="d-flex flex-row justify-content-center align-items-center" style="height:100%;">
+        <div class="card" style="width: 300px;">
+            <div class="card-body">
+                <h5 class="card-title"><?= ( $error ?? 'OAuth2 Error' ) ?></h5>
+                <p class="card-text"><?= ( $error_description ?? '' ) ?></p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
