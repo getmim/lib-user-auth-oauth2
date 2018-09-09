@@ -56,3 +56,8 @@ Untuk metode autentikasi pada client, silahkan lihat source code yang tersimpa d
 
 Secara umum, module ini membuka dua endpoint, yaitu 
 `APIHOST/auth/oauth2/authorize` dan `APIHOST/auth/oauth2/token`.
+
+## Lisensi
+
+Module ini mengunakan library [bshaffer/oauth2-server-php-docs](https://github.com/bshaffer/oauth2-server-php-docs).
+Silahkan mengacup ada library tersebut untuk urusan lisensi.
