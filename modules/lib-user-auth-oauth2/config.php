@@ -75,6 +75,13 @@ return [
                 ],
                 'handler' => 'LibUserAuthOauth2\\Controller\\Auth::authorize',
                 'method' => 'POST|GET'
+            ],
+            'apiUserAuthOAuth2Revoke' => [
+                'path' => [
+                    'value' => '/auth/oauth2/revoke'
+                ],
+                'handler' => 'LibUserAuthOauth2\\Controller\\Auth::revoke',
+                'method' => 'POST'
             ]
         ]
     ],

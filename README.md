@@ -55,7 +55,7 @@ Untuk metode autentikasi pada client, silahkan lihat source code yang tersimpa d
 `example` di repository module ini.
 
 Secara umum, module ini membuka dua endpoint, yaitu 
-`APIHOST/auth/oauth2/authorize` dan `APIHOST/auth/oauth2/token`.
+`APIHOST/auth/oauth2/authorize`, `APIHOST/auth/oauth2/token`, dan `APIHOST/auth/oauth2/revoke`.
 
 ## Lisensi
 

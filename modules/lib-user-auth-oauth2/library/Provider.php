@@ -8,6 +8,7 @@
 namespace LibUserAuthOauth2\Library;
 
 use LibUserAuthOauth2\Library\Storage;
+use LibUserAuthOauth2\Model\UserAuthOauth2Session as UAOSession;
 
 class Provider
 {
@@ -38,5 +39,9 @@ class Provider
 
     public function getStorage(){
         return $this->storage;
+    }
+
+    public function revokeToken($token){
+        $this->storage->unsetAccessToken($token);
     }
 }

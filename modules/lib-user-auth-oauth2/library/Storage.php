@@ -81,6 +81,9 @@ class Storage
             'scopes'  => $scope ? $scope : NULL
         ]);
     }
+    public function unsetAccessToken($token){
+        return UAOSession::remove(['token'=>$token]);
+    }
 
     // ClientInterface
     public function getClientDetails($id){

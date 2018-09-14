@@ -60,6 +60,6 @@ class Authorizer
     }
 
     static function logout(): void{
-        // self::getProvider()->revokeToken();
+        self::getProvider()->revokeToken(self::$session->token);
     }
 }

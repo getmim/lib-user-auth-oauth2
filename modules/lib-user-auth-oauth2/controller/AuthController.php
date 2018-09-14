@@ -75,6 +75,15 @@ class AuthController extends \Api\Controller
         return $this->res->send();
     }
 
+    public function revokeAction(){
+        Authorizer::getProvider()
+            ->getServer()
+            ->handleRevokeRequest(
+                \OAuth2\Request::createFromGlobals()
+            )
+            ->send();
+    }
+
     public function tokenAction() {
         Authorizer::getProvider()
             ->getServer()
