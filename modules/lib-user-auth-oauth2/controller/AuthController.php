@@ -76,20 +76,34 @@ class AuthController extends \Api\Controller
     }
 
     public function revokeAction(){
-        Authorizer::getProvider()
+        $res = Authorizer::getProvider()
             ->getServer()
             ->handleRevokeRequest(
                 \OAuth2\Request::createFromGlobals()
-            )
-            ->send();
+            );
+
+        $res->addHttpHeaders([
+            'Access-Control-Allow-Origin'  => '*',
+            'Access-Control-Allow-Methods' => 'POST, GET, PUT, OPTIONS, DELETE',
+            'Access-Control-Allow-Headers' => 'Authorization'
+        ]);
+
+        $res->send();
     }
 
     public function tokenAction() {
-        Authorizer::getProvider()
+        $res = Authorizer::getProvider()
             ->getServer()
             ->handleTokenRequest(
                 \OAuth2\Request::createFromGlobals()
-            )
-            ->send();
+            );
+
+        $res->addHttpHeaders([
+            'Access-Control-Allow-Origin'  => '*',
+            'Access-Control-Allow-Methods' => 'POST, GET, PUT, OPTIONS, DELETE',
+            'Access-Control-Allow-Headers' => 'Authorization'
+        ]);
+
+        $res->send();
     }
 }
