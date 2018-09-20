@@ -29,14 +29,14 @@ class Storage
         \OAuth2\Storage\PublicKeyInterface,
         \OAuth2\Storage\JwtAccessTokenInterface
 {
-    private $clients = [];
-    private $last_client;
+    private $client;
+    private $rtoken;
     private $scopes = [];
-    private $tokens = [];
-    private $users = [];
+    private $session;
+    private $user;
 
     public function getLastClient(){
-        return $this->last_client;
+        return $this->client;
     }
 
     public function getAllScopes(){
@@ -54,14 +54,14 @@ class Storage
 
     // AccessTokenInterface
     public function getAccessToken($token){
-        if(isset($tokens[$token]))
-            return $tokens[$token];
+        if($this->session && $this->session['_token']->token == $token)
+            return $this->session;
         
         $atoken = UAOSession::getOne(['token'=>$token]);
         if(!$atoken)
             return false;
 
-        $tokens[$token] = [
+        $this->session = [
             '_token'    => $atoken,
             'expires'   => strtotime($atoken->expires),
             'client_id' => $atoken->app,
@@ -70,7 +70,7 @@ class Storage
             'id_token'  => null
         ];
 
-        return $tokens[$token];
+        return $this->session;
     }
     public function setAccessToken($token, $client, $user, $expires, $scope=null){
         UAOSession::create([
@@ -80,15 +80,21 @@ class Storage
             'expires' => date('Y-m-d H:i:s', $expires),
             'scopes'  => $scope ? $scope : NULL
         ]);
+
+        $this->getAccessToken($token);
     }
     public function unsetAccessToken($token){
-        return UAOSession::remove(['token'=>$token]);
+        $session = $this->getAccessToken($token);
+        if(!$session)
+            return;
+        UAOSession::remove(['token'=>$token]);
+        UAORToken::remove(['session'=>$session['_token']->id]);
     }
 
     // ClientInterface
     public function getClientDetails($id){
-        if(isset($this->clients[$id]))
-            return $this->clients[$id];
+        if($this->client && $this->client['_app']->id == $id)
+            return $this->client;
 
         $oapp = UAOApp::getOne(['app'=>$id]);
         if(!$oapp)
@@ -98,10 +104,9 @@ class Storage
         if(!$app)
             return false;
 
-        $this->clients[$id] = $this->last_client = [
-            '_app'  => $app,
-            '_oapp' => $oapp,
-
+        $this->client = [
+            '_app'         => $app,
+            '_oapp'        => $oapp,
             'redirect_uri' => $oapp->redirect,
             'client_id'    => $id,
             'grant_types'  => $oapp->grants ? explode(',', $oapp->grants) : [],
@@ -109,7 +114,7 @@ class Storage
             'scope'        => $oapp->scopes
         ];
 
-        return $this->clients[$id];
+        return $this->client;
     }
     public function getClientScope($id){
         $client = $this->getClientDetails($id);
@@ -174,34 +179,51 @@ class Storage
 
     // RefreshTokenInterface
     public function getRefreshToken($token){
+        if($this->rtoken && $this->rtoken['refresh_token'] == $token)
+            return $this->rtoken;
+
         $rtoken = UAORToken::getOne(['token'=>$token]);
         if(!$rtoken)
             return null;
 
-        return [
+        $this->rtoken = [
+            '_rtoken'       => $rtoken,
             'refresh_token' => $rtoken->token,
             'client_id'     => $rtoken->app,
             'user_id'       => $rtoken->user,
             'expires'       => strtotime($rtoken->expires),
             'scope'         => $rtoken->scopes
         ];
+
+        return $this->rtoken;
     }
     public function setRefreshToken($token, $client, $user, $expires, $scope=null){
         UAORToken::create([
-            'app'   => $client,
-            'user'  => $user,
-            'token' => $token,
+            'app'     => $client,
+            'session' => $this->session['_token']->id,
+            'user'    => $user,
+            'token'   => $token,
             'expires' => date('Y-m-d H:i:s', $expires),
-            'scopes' => $scope
+            'scopes'  => $scope
         ]);
     }
     public function unsetRefreshToken($token){
-        UAORToken::remove(['token'=>$token]);
+        if($this->rtoken && $this->rtoken['_rtoken']->token == $token)
+            $rtoken = $this->rtoken['_rtoken'];
+        else
+            $rtoken = UAORToken::getOne(['token'=>$token]);
+        
+        if(!$rtoken)
+            return;
+
+        UAORToken::remove(['id'=>$rtoken->id]);
+        if($rtoken->session)
+            UAOSession::remove(['id'=>$rtoken->session]);
     }
 
     // UserCredentialsInterface
     public function checkUserCredentials($name, $password){
-        if(isset($this->users[$name]))
+        if($this->user && $this->user['_user']->name == $name)
             return true;
 
         $handler = \Mim::$app->config->libUser->handler;
@@ -209,7 +231,7 @@ class Storage
         if(!$user)
             return false;
 
-        $this->users[$name] = [
+        $this->user = [
             '_user'     => $user,
             'user_id'   => $user->id,
             'scope'     => ''
@@ -218,7 +240,7 @@ class Storage
         return true;
     }
     public function getUserDetails($name){
-        return $this->users[$name] ?? false;
+        return $this->user ?? false;
     }
 
     // JwtBearerInterface
@@ -241,6 +263,7 @@ class Storage
             if(!isset($this->scopes[$name]))
                 return false;
         }
+
         return true;
     }
 

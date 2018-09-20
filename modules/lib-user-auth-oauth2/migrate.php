@@ -79,6 +79,13 @@ return [
                     'unsigned' => true
                 ]
             ],
+            'session' => [
+                'type' => 'INT',
+                'attrs' => [
+                    'unsigned' => true,
+                    'null' => false
+                ]
+            ],
             'token' => [
                 'type' => 'VARCHAR',
                 'length' => 64,
