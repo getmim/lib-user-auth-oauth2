@@ -8,6 +8,7 @@
 namespace LibUserAuthOauth2\Controller;
 
 use LibUserAuthOauth2\Library\Authorizer;
+use LibEvent\Library\Event;
 
 class AuthController extends \Api\Controller
 {
@@ -51,6 +52,10 @@ class AuthController extends \Api\Controller
 
         if($this->req->getPost('allow') == 1){
             $server->handleAuthorizeRequest($req, $res, true, $this->user->id);
+            
+            if(module_exists('lib-event'))
+                Event::trigger('user:authorized', $this->user->id);
+
             return $res->send();
         }
 
