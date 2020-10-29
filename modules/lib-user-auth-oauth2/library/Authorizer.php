@@ -18,6 +18,13 @@ class Authorizer
     private static $provider;
     private static $session;
 
+    static function getAppId(): ?int{
+        if(!self::$session)
+            return null;
+
+        return self::$session->app;
+    }
+
     static function getProvider(){
         if(!self::$provider)
             self::$provider = new Provider;
@@ -29,7 +36,7 @@ class Authorizer
     }
 
     static function hasScope(string $scope): bool {
-        
+        return false; // TODO
     }
 
     static function identify(): ?string {
