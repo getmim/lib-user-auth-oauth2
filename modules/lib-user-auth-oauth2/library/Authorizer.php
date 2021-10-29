@@ -2,7 +2,7 @@
 /**
  * Authorizer
  * @package lib-user-auth-oauth2
- * @version 0.0.1
+ * @version 0.1.1
  */
 
 namespace LibUserAuthOauth2\Library;
@@ -36,7 +36,7 @@ class Authorizer
     }
 
     static function hasScope(string $scope): bool {
-        return false; // TODO
+        return in_array($scope, self::$session->scopes);
     }
 
     static function identify(): ?string {
@@ -54,7 +54,8 @@ class Authorizer
             'type'      => 'oauth2',
             'expires'   => $token['expires'],
             'token'     => $token['_token']->token,
-            'app'       => $token['client_id']
+            'app'       => $token['client_id'],
+            'scopes'    => explode(' ', ($token['scope'] ?? ''))
         ];
 
         if(!$token['user_id'])
