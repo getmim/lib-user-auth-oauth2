@@ -116,7 +116,9 @@ class AuthController extends \Api\Controller
             $session = $storage->getUserDetails('session');
 
             if ($session && isset($session['user_id'])) {
-                Event::trigger('user:authorized', $session['user_id']);
+                if (module_exists('lib-event')) {
+                    Event::trigger('user:authorized', $session['user_id']);
+                }
             }
         }
 
