@@ -8,14 +8,14 @@ return [
                 'attrs' => [
                     'unsigned' => true,
                     'primary_key' => true,
-                    'auto_increment' => true 
+                    'auto_increment' => true
                 ]
             ],
             'app' => [
                 'type' => 'INT',
                 'attrs' => [
                     'unsigned' => true,
-                    'null' => false 
+                    'null' => false
                 ]
             ],
             'user' => [
@@ -63,14 +63,14 @@ return [
                 'attrs' => [
                     'unsigned' => true,
                     'primary_key' => true,
-                    'auto_increment' => true 
+                    'auto_increment' => true
                 ]
             ],
             'app' => [
                 'type' => 'INT',
                 'attrs' => [
                     'unsigned' => true,
-                    'null' => false 
+                    'null' => false
                 ]
             ],
             'user' => [
@@ -118,7 +118,7 @@ return [
                 'attrs' => [
                     'unsigned' => true,
                     'primary_key' => true,
-                    'auto_increment' => true 
+                    'auto_increment' => true
                 ]
             ],
             'name' => [
@@ -147,14 +147,14 @@ return [
                 'attrs' => [
                     'unsigned' => true,
                     'primary_key' => true,
-                    'auto_increment' => true 
+                    'auto_increment' => true
                 ]
             ],
             'app' => [
                 'type' => 'INT',
                 'attrs' => [
                     'unsigned' => true,
-                    'null' => false 
+                    'null' => false
                 ]
             ],
             'user' => [
@@ -196,41 +196,56 @@ return [
                 'attrs' => [
                     'unsigned' => true,
                     'primary_key' => true,
-                    'auto_increment' => true 
-                ]
+                    'auto_increment' => true
+                ],
+                'index' => 1000
             ],
             'app' => [
                 'type' => 'INT',
                 'attrs' => [
                     'unsigned' => true,
-                    'null' => false 
-                ]
+                    'null' => false
+                ],
+                'index' => 2000
             ],
             'secret' => [
                 'type' => 'VARCHAR',
                 'length' => 64,
                 'attrs' => [
                     'null' => false
-                ]
+                ],
+                'index' => 3000
             ],
             'grants' => [
-                'type' => 'TEXT'
+                'type' => 'TEXT',
+                'index' => 4000
             ],
             'scopes' => [
-                'type' => 'TEXT'
+                'type' => 'TEXT',
+                'index' => 5000
             ],
             'redirect' => [
                 'type' => 'VARCHAR',
                 'length' => 250,
                 'attrs' => [
                     'null' => false
-                ]
+                ],
+                'index' => 6000
+            ],
+            'updated' => [
+                'type' => 'TIMESTAMP',
+                'attrs' => [
+                    'default' => 'CURRENT_TIMESTAMP',
+                    'update' => 'CURRENT_TIMESTAMP'
+                ],
+                'index' => 7000
             ],
             'created' => [
                 'type' => 'TIMESTAMP',
                 'attrs' => [
                     'default' => 'CURRENT_TIMESTAMP'
-                ]
+                ],
+                'index' => 8000
             ]
         ],
         'indexes' => [
