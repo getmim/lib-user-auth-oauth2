@@ -121,12 +121,16 @@ return [
                 'secret' => [
                     'type' => 'text',
                     'label' => 'Secret',
+                    'c_model' => 'LibUserAuthOauth2\\Model\\UserAuthOauth2App',
+                    'c_type' => 'any',
                     'rules' => [
                         'required' => true
                     ]
                 ],
                 'grants' => [
                     'label' => 'Grants',
+                    'c_model' => 'LibUserAuthOauth2\\Model\\UserAuthOauth2App',
+                    'c_type' => 'json',
                     'type' => 'checkbox-group',
                     'rules' => [
                         'required' => true,
@@ -134,11 +138,15 @@ return [
                     ]
                 ],
                 'scopes' => [
+                    'c_model' => 'LibUserAuthOauth2\\Model\\UserAuthOauth2App',
+                    'c_type' => 'json',
                     'label' => 'Scopes',
                     'type' => 'checkbox-group',
                     'rules' => []
                 ],
                 'redirect' => [
+                    'c_model' => 'LibUserAuthOauth2\\Model\\UserAuthOauth2App',
+                    'c_type' => 'any',
                     'type' => 'url',
                     'label' => 'Redirect',
                     'rules' => [
