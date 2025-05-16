@@ -8,47 +8,70 @@
 namespace LibUserAuthOauth2\Library;
 
 use LibUserAuthOauth2\Library\Provider;
+use LibUserAuthOauth2\Model\UserAuthOauth2App;
 
-class Authorizer
-    implements
-        \LibUser\Iface\Authorizer,
-        \LibApp\Iface\Authorizer
+class Authorizer implements \LibUser\Iface\Authorizer, \LibApp\Iface\Authorizer
 {
 
     private static $provider;
     private static $session;
 
-    static function getAppId(): ?int{
-        if(!self::$session)
+    public static function getAppId(): ?int
+    {
+        if (!self::$session) {
             return null;
+        }
 
         return self::$session->app;
     }
 
-    static function getProvider(){
-        if(!self::$provider)
+    public static function getProvider()
+    {
+        if (!self::$provider) {
             self::$provider = new Provider;
+        }
         return self::$provider;
     }
 
-    static function getSession(): ?object {
+    public static function getSession(): ?object
+    {
         return self::$session;
     }
 
-    static function hasScope(string $scope): bool {
+    public static function hasScope(string $scope): bool
+    {
         return in_array($scope, self::$session->scopes);
     }
 
-    static function identify(): ?string {
+    public static function getAppSecret(): ?string
+    {
+        $session = self::getSession();
+        if (!$session) {
+            return null;
+        }
+
+        $app_id = $session->app;
+        $app = UserAuthOauth2App::getOne(['app' => $app_id]);
+        if (!$app) {
+            return null;
+        }
+
+        return $app->secret;
+    }
+
+    public static function identify(): ?string
+    {
         $server = self::getProvider()->getServer();
         $req    = \OAuth2\Request::createFromGlobals();
 
-        if(!$server->verifyResourceRequest($req))
+        if (!$server->verifyResourceRequest($req)) {
             return null;
+        }
 
         $token = $server->getAccessTokenData($req);
-        if(!$token)
+        if (!$token) {
             return null;
+        }
 
         self::$session = (object)[
             'type'      => 'oauth2',
@@ -58,16 +81,19 @@ class Authorizer
             'scopes'    => explode(' ', ($token['scope'] ?? ''))
         ];
 
-        if(!$token['user_id'])
+        if (!$token['user_id']) {
             return null;
+        }
         return $token['user_id'];
     }
 
-    static function loginById(string $identity): ?array {
+    public static function loginById(string $identity): ?array
+    {
         return null;
     }
 
-    static function logout(): void{
+    public static function logout(): void
+    {
         self::getProvider()->revokeToken(self::$session->token);
     }
 }
