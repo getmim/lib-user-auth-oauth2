@@ -2,7 +2,7 @@
 
 return [
     '__name' => 'lib-user-auth-oauth2',
-    '__version' => '0.3.0',
+    '__version' => '0.3.1',
     '__git' => 'git@github.com:getmim/lib-user-auth-oauth2.git',
     '__license' => 'MIT',
     '__author' => [
@@ -63,6 +63,11 @@ return [
     ],
     'libUser' => [
         'authorizers' => [
+            'oauth2' => 'LibUserAuthOauth2\\Library\\Authorizer'
+        ]
+    ],
+    'libApp' => [
+        'authorizer' => [
             'oauth2' => 'LibUserAuthOauth2\\Library\\Authorizer'
         ]
     ],
