@@ -8,26 +8,23 @@
 namespace LibUserAuthOauth2\Library;
 
 use LibApp\Model\App;
-use LibUserAuthOauth2\Model\{
-    UserAuthOauth2App as UAOApp,
-    UserAuthOauth2Scope as UAOScope,
-    UserAuthOauth2Session as UAOSession,
-    UserAuthOauth2RefreshToken as UAORToken,
-    UserAuthOauth2Code as UAOCode
-};
+use LibUserAuthOauth2\Model\UserAuthOauth2App;
+use LibUserAuthOauth2\Model\UserAuthOauth2Code;
+use LibUserAuthOauth2\Model\UserAuthOauth2RefreshToken;
+use LibUserAuthOauth2\Model\UserAuthOauth2Session;
+use LibUserAuthOauth2\Model\UserAuthOauth2Scope;
 
-class Storage
-    implements 
-        \OAuth2\Storage\AccessTokenInterface,
-        \OAuth2\Storage\ClientInterface,
-        \OAuth2\Storage\ClientCredentialsInterface,
-        \OAuth2\Storage\AuthorizationCodeInterface,
-        \OAuth2\Storage\RefreshTokenInterface,
-        \OAuth2\Storage\UserCredentialsInterface,
-        \OAuth2\Storage\JwtBearerInterface,
-        \OAuth2\Storage\ScopeInterface,
-        \OAuth2\Storage\PublicKeyInterface,
-        \OAuth2\Storage\JwtAccessTokenInterface
+class Storage implements
+    \OAuth2\Storage\AccessTokenInterface,
+    \OAuth2\Storage\ClientInterface,
+    \OAuth2\Storage\ClientCredentialsInterface,
+    \OAuth2\Storage\AuthorizationCodeInterface,
+    \OAuth2\Storage\RefreshTokenInterface,
+    \OAuth2\Storage\UserCredentialsInterface,
+    \OAuth2\Storage\JwtBearerInterface,
+    \OAuth2\Storage\ScopeInterface,
+    \OAuth2\Storage\PublicKeyInterface,
+    \OAuth2\Storage\JwtAccessTokenInterface
 {
     private $client;
     private $rtoken;
@@ -35,17 +32,20 @@ class Storage
     private $session;
     private $user;
 
-    public function getLastClient(){
+    public function getLastClient()
+    {
         return $this->client;
     }
 
-    public function getAllScopes(){
-        if(!$this->scopes){
-            $scopes = UAOScope::get([]);
-            if($scopes){
+    public function getAllScopes()
+    {
+        if (!$this->scopes) {
+            $scopes = UserAuthOauth2Scope::get([]);
+            if ($scopes) {
                 $this->scopes = [];
-                foreach($scopes as $scope)
+                foreach ($scopes as $scope) {
                     $this->scopes[$scope->name] = $scope;
+                }
             }
         }
 
@@ -53,13 +53,16 @@ class Storage
     }
 
     // AccessTokenInterface
-    public function getAccessToken($token){
-        if($this->session && $this->session['_token']->token == $token)
+    public function getAccessToken($token)
+    {
+        if ($this->session && $this->session['_token']->token == $token) {
             return $this->session;
+        }
         
-        $atoken = UAOSession::getOne(['token'=>$token]);
-        if(!$atoken)
+        $atoken = UserAuthOauth2Session::getOne(['token'=>$token]);
+        if (!$atoken) {
             return false;
+        }
 
         $this->session = [
             '_token'    => $atoken,
@@ -72,83 +75,107 @@ class Storage
 
         return $this->session;
     }
-    public function setAccessToken($token, $client, $user, $expires, $scope=null){
-        UAOSession::create([
+    public function setAccessToken($token, $client, $user, $expires, $scope = null)
+    {
+        UserAuthOauth2Session::create([
             'app'     => $client,
             'user'    => $user,
             'token'   => $token,
             'expires' => date('Y-m-d H:i:s', $expires),
-            'scopes'  => $scope ? $scope : NULL
+            'scopes'  => $scope ? $scope : null
         ]);
 
         $this->getAccessToken($token);
     }
-    public function unsetAccessToken($token){
+    public function unsetAccessToken($token)
+    {
         $session = $this->getAccessToken($token);
-        if(!$session)
+        if (!$session) {
             return;
-        UAOSession::remove(['token'=>$token]);
-        UAORToken::remove(['session'=>$session['_token']->id]);
+        }
+        UserAuthOauth2Session::remove(['token'=>$token]);
+        UserAuthOauth2RefreshToken::remove(['session'=>$session['_token']->id]);
     }
 
     // ClientInterface
-    public function getClientDetails($id){
-        if($this->client && $this->client['_app']->id == $id)
+    public function getClientDetails($id)
+    {
+        if ($this->client && $this->client['_app']->id == $id) {
             return $this->client;
+        }
 
-        $oapp = UAOApp::getOne(['app'=>$id]);
-        if(!$oapp)
+        $oapp = UserAuthOauth2App::getOne(['app'=>$id]);
+        if (!$oapp) {
             return false;
+        }
 
         $app = App::getOne(['id'=>$id]);
-        if(!$app)
+        if (!$app) {
             return false;
+        }
+
+        if ($oapp->grants[0] == '[') {
+            $oapp->grants = json_decode($oapp->grants);
+        } else {
+            $oapp->grants = explode(',', $oapp->grants);
+        }
 
         $this->client = [
             '_app'         => $app,
             '_oapp'        => $oapp,
             'redirect_uri' => $oapp->redirect,
             'client_id'    => $id,
-            'grant_types'  => $oapp->grants ? explode(',', $oapp->grants) : [],
-            'user_id'      => NULL,
+            'grant_types'  => $oapp->grants,
+            'user_id'      => null,
             'scope'        => $oapp->scopes
         ];
 
         return $this->client;
     }
-    public function getClientScope($id){
+
+    public function getClientScope($id)
+    {
         $client = $this->getClientDetails($id);
-        if(!$client)
+        if (!$client) {
             return '';
+        }
 
         return $client['scope'];
     }
-    public function checkRestrictedGrantType($id, $grant){
+
+    public function checkRestrictedGrantType($id, $grant)
+    {
         $client = $this->getClientDetails($id);
-        if(!$client)
+        if (!$client) {
             return false;
+        }
 
         return in_array($grant, $client['grant_types']);
     }
 
     // ClientCredentialsInterface
-    public function checkClientCredentials($id, $secret=null){
+    public function checkClientCredentials($id, $secret = null)
+    {
         $client = $this->getClientDetails($id);
-        if(!$client)
+        if (!$client) {
             return false;
+        }
 
         $oapp = $client['_oapp'];
         return $oapp->secret === $secret;
     }
-    public function isPublicClient($id){
+    public function isPublicClient($id)
+    {
         return false;
     }
 
     // AuthorizationCodeInterface
-    public function getAuthorizationCode($code){
-        $ctoken = UAOCode::getOne(['token'=>$code]);
-        if(!$ctoken)
-            return NULL;
+    public function getAuthorizationCode($code)
+    {
+        $ctoken = UserAuthOauth2Code::getOne(['token'=>$code]);
+        if (!$ctoken) {
+            return null;
+        }
 
         $result = [
             'client_id' => $ctoken->app,
@@ -158,13 +185,15 @@ class Storage
             'scope'     => $ctoken->scopes
         ];
 
-        if($result['expires'] < time())
+        if ($result['expires'] < time()) {
             $this->expireAuthorizationCode($code);
+        }
 
         return $result;
     }
-    public function setAuthorizationCode($code, $client, $user, $redirect, $expires, $scope=null){
-        UAOCode::create([
+    public function setAuthorizationCode($code, $client, $user, $redirect, $expires, $scope = null)
+    {
+        UserAuthOauth2Code::create([
             'token'     => $code,
             'app'       => $client,
             'user'      => $user,
@@ -173,18 +202,22 @@ class Storage
             'scopes'    => $scope
         ]);
     }
-    public function expireAuthorizationCode($code){
-        UAOCode::remove(['token'=>$code]);
+    public function expireAuthorizationCode($code)
+    {
+        UserAuthOauth2Code::remove(['token'=>$code]);
     }
 
     // RefreshTokenInterface
-    public function getRefreshToken($token){
-        if($this->rtoken && $this->rtoken['refresh_token'] == $token)
+    public function getRefreshToken($token)
+    {
+        if ($this->rtoken && $this->rtoken['refresh_token'] == $token) {
             return $this->rtoken;
+        }
 
         $rtoken = UAORToken::getOne(['token'=>$token]);
-        if(!$rtoken)
+        if (!$rtoken) {
             return null;
+        }
 
         $this->rtoken = [
             '_rtoken'       => $rtoken,
@@ -197,8 +230,9 @@ class Storage
 
         return $this->rtoken;
     }
-    public function setRefreshToken($token, $client, $user, $expires, $scope=null){
-        UAORToken::create([
+    public function setRefreshToken($token, $client, $user, $expires, $scope = null)
+    {
+        UserAuthOauth2RefreshToken::create([
             'app'     => $client,
             'session' => $this->session['_token']->id,
             'user'    => $user,
@@ -207,29 +241,36 @@ class Storage
             'scopes'  => $scope
         ]);
     }
-    public function unsetRefreshToken($token){
-        if($this->rtoken && $this->rtoken['_rtoken']->token == $token)
+    public function unsetRefreshToken($token)
+    {
+        if ($this->rtoken && $this->rtoken['_rtoken']->token == $token) {
             $rtoken = $this->rtoken['_rtoken'];
-        else
-            $rtoken = UAORToken::getOne(['token'=>$token]);
+        } else {
+            $rtoken = UserAuthOauth2RefreshToken::getOne(['token'=>$token]);
+        }
         
-        if(!$rtoken)
+        if (!$rtoken) {
             return;
+        }
 
-        UAORToken::remove(['id'=>$rtoken->id]);
-        if($rtoken->session)
+        UserAuthOauth2RefreshToken::remove(['id'=>$rtoken->id]);
+        if ($rtoken->session) {
             UAOSession::remove(['id'=>$rtoken->session]);
+        }
     }
 
     // UserCredentialsInterface
-    public function checkUserCredentials($name, $password){
-        if($this->user && $this->user['_user']->name == $name)
+    public function checkUserCredentials($name, $password)
+    {
+        if ($this->user && $this->user['_user']->name == $name) {
             return true;
+        }
 
         $handler = \Mim::$app->config->libUser->handler;
         $user = $handler::getByCredentials($name, $password);
-        if(!$user)
+        if (!$user) {
             return false;
+        }
 
         $this->user = [
             '_user'     => $user,
@@ -239,46 +280,60 @@ class Storage
 
         return true;
     }
-    public function getUserDetails($name){
+    public function getUserDetails($name)
+    {
         return $this->user ?? false;
     }
 
     // JwtBearerInterface
-    public function getClientKey($client_id, $subject){
+    public function getClientKey($client_id, $subject)
+    {
         deb(__FUNCTION__);
     }
-    public function getJti($client_id, $subject, $audience, $expiration, $jti){
+
+    public function getJti($client_id, $subject, $audience, $expiration, $jti)
+    {
         deb(__FUNCTION__);
     }
-    public function setJti($client_id, $subject, $audience, $expiration, $jti){
+
+    public function setJti($client_id, $subject, $audience, $expiration, $jti)
+    {
         deb(__FUNCTION__);
     }
 
     // ScopeInterface
-    public function scopeExists($names){
+    public function scopeExists($names)
+    {
         $this->getAllScopes();
 
         $names = explode(' ', $names);
-        foreach($names as $name){
-            if(!isset($this->scopes[$name]))
+        foreach ($names as $name) {
+            if (!isset($this->scopes[$name])) {
                 return false;
+            }
         }
 
         return true;
     }
 
-    public function getDefaultScope($client_id = null){
+    public function getDefaultScope($client_id = null)
+    {
         return null;
     }
 
     // PublicKeyInterface
-    public function getPublicKey($client_id = null){
+    public function getPublicKey($client_id = null)
+    {
         deb(__FUNCTION__);
     }
-    public function getPrivateKey($client_id = null){
+
+    public function getPrivateKey($client_id = null)
+    {
         deb(__FUNCTION__);
     }
-    public function getEncryptionAlgorithm($client_id = null){
+
+    public function getEncryptionAlgorithm($client_id = null)
+    {
         deb(__FUNCTION__);
     }
 }
